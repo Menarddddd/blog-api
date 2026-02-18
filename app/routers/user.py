@@ -9,9 +9,29 @@ from sqlalchemy.orm import selectinload
 
 from app.core.database import get_db
 from app.models.user import Role, User
-from app.repositories.user import check_username_exist, get_current_user, required_role
+from app.repositories.user import (
+    change_password_db,
+    check_username_exist,
+    create_user_db,
+    delete_user_db,
+    get_all_user,
+    get_current_user,
+    get_user_by_username,
+    required_role,
+    update_user_partial_db,
+)
 from app.schemas.user import ChangePassword, Token, UserCreate, UserResponse, UserUpdate
 from app.core.security import create_access_token, hash_password, verify_password
+from app.services.user import (
+    change_password_service,
+    delete_profile_service,
+    delete_user_service,
+    get_users_service,
+    my_profile_service,
+    sign_in_service,
+    sign_up_service,
+    update_profile_service,
+)
 
 
 router = APIRouter()
@@ -22,53 +42,14 @@ async def sign_in(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
-    stmt = select(User).where(User.username == form_data.username)
-    result = await db.execute(stmt)
-    user = result.scalars().first()
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Username not found"
-        )
-
-    if not verify_password(form_data.password, user.password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Username or password is not correct",
-        )
-
-    access_token = create_access_token({"sub": str(user.id)})
-    refresh_token = ""
-    # save the refresh token here
-
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "refresh_token": refresh_token,
-    }
+    result = await sign_in_service(form_data, db)
+    return result
 
 
 @router.post("/signUp", status_code=status.HTTP_201_CREATED)
 async def sign_up(form_data: UserCreate, db: Annotated[AsyncSession, Depends(get_db)]):
-    stmt = select(User).where(User.username == form_data.username)
-
-    result = await db.execute(stmt)
-    user = result.scalars().first()
-    if user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Username already exist"
-        )
-
-    hashed_pwd = hash_password(form_data.password)
-    form_data.password = hashed_pwd
-
-    data = form_data.model_dump()
-    new_user = User(**data)
-
-    db.add(new_user)
-    await db.commit()
-    await db.refresh(new_user)
-
-    return {"message": "Your account has been successfully created."}
+    result = await sign_up_service(form_data, db)
+    return result
 
 
 @router.get("/me", response_model=UserResponse, status_code=status.HTTP_200_OK)
@@ -76,7 +57,7 @@ async def my_profile(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ):
-    return current_user
+    return await my_profile_service(db, current_user)
 
 
 @router.patch("/me", response_model=UserResponse, status_code=status.HTTP_200_OK)
@@ -85,25 +66,8 @@ async def update_profile(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ):
-    if form_data.username:
-        await check_username_exist(form_data.username, db)
-
-    result = await db.execute(
-        select(User)
-        .options(selectinload(User.posts), selectinload(User.refresh_tokens))
-        .where(User.username == current_user.username)
-    )
-    user = result.scalars().first()
-
-    data = form_data.model_dump(exclude_unset=True)
-
-    for key, value in data.items():
-        setattr(user, key, value)
-
-    await db.commit()
-    await db.refresh(user)
-
-    return user
+    result = await update_profile_service(form_data, db, current_user)
+    return result
 
 
 @router.post("/me", status_code=status.HTTP_200_OK)
@@ -112,24 +76,8 @@ async def change_password(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ):
-    if form_data.new_password != form_data.confirm_password:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="New password must match"
-        )
-
-    if not verify_password(form_data.current_password, current_user.password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Password is not correct"
-        )
-
-    hashed_pwd = hash_password(form_data.new_password)
-
-    current_user.password = hashed_pwd
-
-    await db.commit()
-    await db.refresh(current_user)
-
-    return {"message": "You've successfully changed your password"}
+    result = await change_password_service(form_data, db, current_user)
+    return result
 
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
@@ -138,31 +86,17 @@ async def delete_profile(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ):
-    if not verify_password(password, current_user.password):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Password is not correct"
-        )
-
-    await db.delete(current_user)
-    await db.commit()
+    await delete_profile_service(password, db, current_user)
 
 
-# FIX THIS LATER
 # ADMIN PROTECTED ROUTE
 @router.get("/admin", response_model=List[UserResponse], status_code=status.HTTP_200_OK)
 async def get_users(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(required_role(Role.ADMIN))],
 ):
-    result = await db.execute(
-        select(User).options(
-            selectinload(User.posts),
-            selectinload(User.refresh_tokens),
-        )
-    )
-    users = result.scalars().all()
-
-    return users
+    result = await get_users_service(db, current_user)
+    return result
 
 
 @router.delete("/admin", status_code=status.HTTP_204_NO_CONTENT)
@@ -171,8 +105,4 @@ async def delete_user(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(required_role(Role.ADMIN))],
 ):
-    result = await db.execute(select(User).where(User.id == user_id))
-    user = result.scalars().first()
-
-    await db.delete(user)
-    await db.commit()
+    result = await delete_user_service(user_id, db, current_user)

@@ -82,3 +82,64 @@ def required_role(role: Role):
         return current_user
 
     return role_checker
+
+
+async def get_user_by_username(username: str, db):
+    stmt = (
+        select(User)
+        .options(selectinload(User.posts), selectinload(User.refresh_tokens))
+        .where(User.username == username)
+    )
+
+    result = await db.execute(stmt)
+
+    user = result.scalars().first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Username not found"
+        )
+
+    return user
+
+
+async def create_user_db(form_data: dict, db: AsyncSession):
+    new_user = User(**form_data)
+
+    db.add(new_user)
+    await db.commit()
+    await db.refresh(new_user)
+
+
+async def update_user_partial_db(form_data: dict, user: User, db: AsyncSession):
+    for key, value in form_data.items():
+        setattr(user, key, value)
+
+    await db.commit()
+    await db.refresh(user)
+
+    return user
+
+
+async def change_password_db(hashed_pwd: str, user: User, db: AsyncSession):
+    user.password = hashed_pwd
+
+    await db.commit()
+    await db.refresh(user)
+
+
+async def delete_user_db(user: User, db: AsyncSession):
+    await db.delete(user)
+    await db.commit()
+
+
+# ADMIN
+async def get_all_user(db: AsyncSession):
+    result = await db.execute(
+        select(User).options(
+            selectinload(User.posts),
+            selectinload(User.refresh_tokens),
+        )
+    )
+    users = result.scalars().all()
+
+    return users
