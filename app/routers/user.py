@@ -38,8 +38,8 @@ async def sign_up(form_data: UserCreate, db: Annotated[AsyncSession, Depends(get
     return {"message": "Your account has been successfully created."}
 
 
-@router.get("", response_model=List[UserResponse])
-async def get_users(db: AsyncSession = Depends(get_db)):
+@router.get("", response_model=List[UserResponse], status_code=status.HTTP_200_OK)
+async def get_users(db: Annotated[AsyncSession, Depends(get_db)]):
     result = await db.execute(
         select(User).options(
             selectinload(User.posts),
@@ -48,24 +48,7 @@ async def get_users(db: AsyncSession = Depends(get_db)):
     )
     users = result.scalars().all()
 
-    for user in users:
-        print("POSTS:", user.posts)
-        print("TOKENS:", user.refresh_tokens)
-
     return users
-
-
-# @router.get("", response_model=List[UserResponse], status_code=status.HTTP_200_OK)
-# async def get_users(db: Annotated[AsyncSession, Depends(get_db)]):
-#     result = await db.execute(
-#         select(User).options(
-#             selectinload(User.posts),
-#             selectinload(User.refresh_tokens),
-#         )
-#     )
-#     users = result.scalars().all()
-
-#     return users
 
 
 @router.get("/me", response_model=UserResponse, status_code=status.HTTP_200_OK)

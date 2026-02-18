@@ -3,6 +3,8 @@ from typing import List
 from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
 
+from app.models.user import Role
+
 
 class UserBase(BaseModel):
     first_name: str = Field(min_length=2, max_length=100)
@@ -25,6 +27,7 @@ class TokenPublic(BaseModel):
 
 
 class UserResponse(UserBase):
+    role: Role
     posts: List[PostPublic] = Field(default_factory=list)
     refresh_tokens: List[TokenPublic] = Field(default_factory=list)
 
