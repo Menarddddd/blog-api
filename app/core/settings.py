@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     ALGORITHM: str
     ACCESS_EXPIRE_MINUTES: int
     REFRESH_EXPIRE_DAYS: int
+    PASSWORD: SecretStr
 
 
 settings = Settings()  # type: ignore
