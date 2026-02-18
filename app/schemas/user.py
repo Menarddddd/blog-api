@@ -6,10 +6,17 @@ from datetime import datetime
 from app.models.user import Role
 
 
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+    refresh_token: str
+
+
 class UserBase(BaseModel):
     first_name: str = Field(min_length=2, max_length=100)
     last_name: str = Field(min_length=2, max_length=100)
     username: str = Field(min_length=7, max_length=200)
+    role: Role
 
 
 class UserCreate(UserBase):
@@ -27,8 +34,20 @@ class TokenPublic(BaseModel):
 
 
 class UserResponse(UserBase):
-    role: Role
+    id: uuid.UUID
     posts: List[PostPublic] = Field(default_factory=list)
     refresh_tokens: List[TokenPublic] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class UserUpdate(BaseModel):
+    first_name: str | None = None
+    last_name: str | None = None
+    username: str | None = None
+
+
+class ChangePassword(BaseModel):
+    current_password: str
+    new_password: str = Field(min_length=5, max_length=200)
+    confirm_password: str = Field(min_length=5, max_length=200)
