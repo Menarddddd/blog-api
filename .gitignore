@@ -1,0 +1,33 @@
+# Python virtual environments
+.venv/
+env/
+venv/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Distribution / packaging
+*.egg-info/
+dist/
+build/
+
+# Environment variables
+.env
+*.env
+
+# IDE/editor settings
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Coverage / testing
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Migrations (optional, if auto-generated)
+alembic/versions/*.pyc
