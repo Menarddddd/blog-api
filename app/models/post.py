@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 class Post(Base):
     __tablename__ = "posts"
 
-    uuid: Mapped[uuid.UUID] = mapped_column(
+    id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)

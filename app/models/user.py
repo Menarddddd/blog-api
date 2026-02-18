@@ -1,5 +1,5 @@
 import uuid
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 from sqlalchemy import String, UUID
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 class User(Base):
     __tablename__ = "users"
 
-    uuid: Mapped[uuid.UUID] = mapped_column(
+    id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     first_name: Mapped[str] = mapped_column(String(100), nullable=False)
@@ -21,9 +21,9 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(200), nullable=False, unique=True)
     password: Mapped[str] = mapped_column(String(200), nullable=False)
 
-    posts: Mapped["Post"] = relationship(
+    posts: Mapped[List["Post"]] = relationship(
         "Post", back_populates="author", cascade="all, delete-orphan"
     )
-    refresh_tokens: Mapped["RefreshToken"] = relationship(
+    refresh_tokens: Mapped[List["RefreshToken"]] = relationship(
         "RefreshToken", back_populates="user", cascade="all, delete-orphan"
     )
