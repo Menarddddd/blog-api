@@ -1,27 +1,17 @@
 from uuid import UUID
 from typing import Annotated, List
 from fastapi.routing import APIRouter
-from fastapi import HTTPException, status, Depends
+from fastapi import status, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
 
 from app.core.database import get_db
 from app.models.user import Role, User
 from app.repositories.user import (
-    change_password_db,
-    check_username_exist,
-    create_user_db,
-    delete_user_db,
-    get_all_user,
     get_current_user,
-    get_user_by_username,
     required_role,
-    update_user_partial_db,
 )
 from app.schemas.user import ChangePassword, Token, UserCreate, UserResponse, UserUpdate
-from app.core.security import create_access_token, hash_password, verify_password
 from app.services.user import (
     change_password_service,
     delete_profile_service,

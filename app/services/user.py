@@ -4,7 +4,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from app.models.user import Role, User
+from app.models.user import User
 from app.repositories.user import (
     change_password_db,
     check_username_exist,
