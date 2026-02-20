@@ -9,6 +9,7 @@ from app.core.database import Base
 if TYPE_CHECKING:
     from app.models.post import Post
     from app.models.refresh_token import RefreshToken
+    from app.models.comment import Comment
 
 
 class Role(Enum):
@@ -30,6 +31,9 @@ class User(Base):
 
     posts: Mapped[List["Post"]] = relationship(
         "Post", back_populates="author", cascade="all, delete-orphan"
+    )
+    comments: Mapped[List["Comment"]] = relationship(
+        "Comment", back_populates="author", cascade="all, delete-orphan"
     )
     refresh_tokens: Mapped[List["RefreshToken"]] = relationship(
         "RefreshToken", back_populates="user", cascade="all, delete-orphan"

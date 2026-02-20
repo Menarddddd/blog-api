@@ -11,7 +11,14 @@ from app.repositories.user import (
     get_current_user,
     required_role,
 )
-from app.schemas.user import ChangePassword, Token, UserCreate, UserResponse, UserUpdate
+from app.schemas.user import (
+    ChangePassword,
+    Token,
+    UserCreate,
+    UserResponse,
+    UserResponseWithActivity,
+    UserUpdate,
+)
 from app.services.user import (
     change_password_service,
     delete_profile_service,
@@ -80,7 +87,11 @@ async def delete_profile(
 
 
 # ADMIN PROTECTED ROUTE
-@router.get("/admin", response_model=List[UserResponse], status_code=status.HTTP_200_OK)
+@router.get(
+    "/admin",
+    response_model=List[UserResponseWithActivity],
+    status_code=status.HTTP_200_OK,
+)
 async def get_users(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(required_role(Role.ADMIN))],

@@ -4,6 +4,7 @@ from app.core.database import Base, engine
 
 from app.routers.user import router as user_router
 from app.routers.post import router as post_router
+from app.routers.comment import router as comment_router
 
 
 @asynccontextmanager
@@ -20,3 +21,4 @@ app = FastAPI(lifespan=lifespan)
 
 app.include_router(user_router, prefix="/api/users", tags=["users"])
 app.include_router(post_router, prefix="/api/posts", tags=["posts"])
+app.include_router(comment_router, prefix="/api/comments", tags=["comments"])

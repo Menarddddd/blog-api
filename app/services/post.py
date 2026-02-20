@@ -9,6 +9,7 @@ from app.models.user import User
 from app.repositories.post import (
     create_post_db,
     delete_post_db,
+    feed_post_db,
     get_all_post_db,
     get_post_by_id_db,
     update_post_db,
@@ -30,7 +31,7 @@ async def create_post_service(
 
 
 async def my_posts_service(db: AsyncSession, current_user: User):
-    posts = await get_all_post_db(db)
+    posts = await get_all_post_db(current_user.id, db)
 
     return posts
 
@@ -56,5 +57,15 @@ async def update_post_service(
     return updated_post
 
 
-async def delete_post_service(post_id: UUID, db: AsyncSession, current_user: User):
+async def delete_post_service(post_id: UUID, db: AsyncSession):
+    await delete_post_db(post_id, db)
+
+
+async def feed_post_service(db: AsyncSession):
+    posts = await feed_post_db(db)
+
+    return posts
+
+
+async def delete_post_admin_service(post_id: UUID, db: AsyncSession):
     await delete_post_db(post_id, db)

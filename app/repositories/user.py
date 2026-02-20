@@ -9,6 +9,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.settings import settings
 from app.core.database import get_db
+from app.models.comment import Comment
+from app.models.post import Post
 from app.models.user import Role, User
 
 
@@ -44,7 +46,12 @@ async def get_current_user(
 
     result = await db.execute(
         select(User)
-        .options(selectinload(User.posts), selectinload(User.refresh_tokens))
+        .options(
+            selectinload(User.posts).options(
+                selectinload(Post.comments).options(selectinload(Comment.author))
+            ),
+            selectinload(User.refresh_tokens),
+        )
         .where(User.id == user_id)
     )
 
@@ -87,7 +94,11 @@ def required_role(role: Role):
 async def get_user_by_username(username: str, db):
     stmt = (
         select(User)
-        .options(selectinload(User.posts), selectinload(User.refresh_tokens))
+        .options(
+            selectinload(User.posts),
+            selectinload(User.refresh_tokens),
+            selectinload(User.comments),
+        )
         .where(User.username == username)
     )
 
@@ -136,8 +147,9 @@ async def delete_user_db(user: User, db: AsyncSession):
 async def get_all_user(db: AsyncSession):
     result = await db.execute(
         select(User).options(
-            selectinload(User.posts),
+            selectinload(User.posts).options(selectinload(Post.comments)),
             selectinload(User.refresh_tokens),
+            selectinload(User.comments),
         )
     )
     users = result.scalars().all()

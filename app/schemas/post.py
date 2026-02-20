@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import List
 from uuid import UUID
 from pydantic import BaseModel, Field
 
@@ -17,10 +18,16 @@ class UserPublic(BaseModel):
     last_name: str
 
 
+class CommentPublic(BaseModel):
+    message: str
+    author: UserPublic
+
+
 class PostResponse(PostBase):
     id: UUID
     date_created: datetime
     author: UserPublic
+    comments: List[CommentPublic]
 
 
 class PostUpdate(BaseModel):

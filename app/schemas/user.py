@@ -23,10 +23,28 @@ class UserCreate(UserBase):
     password: str = Field(min_length=5, max_length=200)
 
 
+class UserPublic(BaseModel):
+    first_name: str
+    last_name: str
+
+
+class CommentPublicPost(BaseModel):
+    message: str
+    author: UserPublic
+    date_created: datetime
+
+
 class PostPublic(BaseModel):
     title: str
     content: str
     date_created: datetime
+    comments: List[CommentPublicPost]
+
+
+class CommentPublic(BaseModel):
+    message: str
+    author: UserPublic
+    post: PostPublic
 
 
 class TokenPublic(BaseModel):
@@ -36,6 +54,15 @@ class TokenPublic(BaseModel):
 class UserResponse(UserBase):
     id: uuid.UUID
     posts: List[PostPublic] = Field(default_factory=list)
+    refresh_tokens: List[TokenPublic] = Field(default_factory=list)
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UserResponseWithActivity(UserBase):
+    id: uuid.UUID
+    posts: List[PostPublic] = Field(default_factory=list)
+    comments: List[CommentPublic] = Field(default_factory=list)
     refresh_tokens: List[TokenPublic] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)
