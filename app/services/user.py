@@ -28,14 +28,8 @@ async def sign_in_service(form_data: OAuth2PasswordRequestForm, db: AsyncSession
         )
 
     access_token = create_access_token({"sub": str(user.id)})
-    refresh_token = ""
-    # save the refresh token here
 
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "refresh_token": refresh_token,
-    }
+    return {"access_token": access_token, "token_type": "bearer"}
 
 
 async def sign_up_service(form_data: UserCreate, db: AsyncSession):

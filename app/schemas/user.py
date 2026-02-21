@@ -9,7 +9,6 @@ from app.models.user import Role
 class Token(BaseModel):
     access_token: str
     token_type: str
-    refresh_token: str
 
 
 class UserBase(BaseModel):
@@ -54,7 +53,6 @@ class TokenPublic(BaseModel):
 class UserResponse(UserBase):
     id: uuid.UUID
     posts: List[PostPublic] = Field(default_factory=list)
-    refresh_tokens: List[TokenPublic] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -63,7 +61,6 @@ class UserResponseWithActivity(UserBase):
     id: uuid.UUID
     posts: List[PostPublic] = Field(default_factory=list)
     comments: List[CommentPublic] = Field(default_factory=list)
-    refresh_tokens: List[TokenPublic] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)
 

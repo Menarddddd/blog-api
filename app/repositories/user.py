@@ -50,7 +50,6 @@ async def get_current_user(
             selectinload(User.posts).options(
                 selectinload(Post.comments).options(selectinload(Comment.author))
             ),
-            selectinload(User.refresh_tokens),
         )
         .where(User.id == user_id)
     )
@@ -96,7 +95,6 @@ async def get_user_by_username(username: str, db):
         select(User)
         .options(
             selectinload(User.posts),
-            selectinload(User.refresh_tokens),
             selectinload(User.comments),
         )
         .where(User.username == username)
@@ -148,7 +146,6 @@ async def get_all_user(db: AsyncSession):
     result = await db.execute(
         select(User).options(
             selectinload(User.posts).options(selectinload(Post.comments)),
-            selectinload(User.refresh_tokens),
             selectinload(User.comments),
         )
     )
