@@ -7,9 +7,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.comment import Comment
 from app.models.post import Post
 from app.models.user import User
-from app.schemas.comment import CommentCreate
-
-# Continue this later, we are seperating the concern of db transactions
 
 
 async def create_comment_db(comment: Comment, db: AsyncSession):

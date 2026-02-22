@@ -19,6 +19,7 @@ class UserPublic(BaseModel):
 
 
 class CommentPublic(BaseModel):
+    id: UUID
     message: str
     author: UserPublic
 

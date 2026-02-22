@@ -13,9 +13,10 @@ from app.repositories.user import (
 )
 from app.schemas.user import (
     ChangePassword,
+    PasswordRequired,
     Token,
     UserCreate,
-    UserResponse,
+    UserOnlyResponse,
     UserResponseWithActivity,
     UserUpdate,
 )
@@ -49,7 +50,9 @@ async def sign_up(form_data: UserCreate, db: Annotated[AsyncSession, Depends(get
     return result
 
 
-@router.get("/me", response_model=UserResponse, status_code=status.HTTP_200_OK)
+@router.get(
+    "/me", response_model=UserResponseWithActivity, status_code=status.HTTP_200_OK
+)
 async def my_profile(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
@@ -57,7 +60,7 @@ async def my_profile(
     return await my_profile_service(db, current_user)
 
 
-@router.patch("/me", response_model=UserResponse, status_code=status.HTTP_200_OK)
+@router.patch("/me", response_model=UserOnlyResponse, status_code=status.HTTP_200_OK)
 async def update_profile(
     form_data: UserUpdate,
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -77,19 +80,19 @@ async def change_password(
     return result
 
 
-@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+@router.post("/me/delete", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_profile(
-    password: str,
+    form_data: PasswordRequired,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ):
-    await delete_profile_service(password, db, current_user)
+    await delete_profile_service(form_data.password, db, current_user)
 
 
 # ADMIN PROTECTED ROUTE
 @router.get(
     "/admin",
-    response_model=List[UserResponseWithActivity],
+    response_model=List[UserOnlyResponse],
     status_code=status.HTTP_200_OK,
 )
 async def get_users(

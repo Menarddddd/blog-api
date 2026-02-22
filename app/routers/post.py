@@ -94,4 +94,4 @@ async def delete_post(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ):
-    await delete_post_service(post_id, db)
+    await delete_post_service(post_id, db, current_user)

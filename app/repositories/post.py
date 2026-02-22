@@ -6,12 +6,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.comment import Comment
 from app.models.post import Post
+from app.models.user import User
 
 
 async def create_post_db(post: Post, db: AsyncSession):
     db.add(post)
     await db.commit()
-    await db.refresh(post)
+    await db.refresh(post, attribute_names=["author", "comments"])
 
     return post
 
@@ -67,7 +68,13 @@ async def update_post_db(to_update: dict, post: Post, db: AsyncSession):
     return post
 
 
-async def delete_post_db(post_id: UUID, db: AsyncSession):
+async def delete_post_db(current_user: User, post: Post, db: AsyncSession):
+
+    await db.delete(post)
+    await db.commit()
+
+
+async def delete_post_admin_db(post_id: UUID, db: AsyncSession):
     post = await get_post_by_id_db(post_id, db)
 
     await db.delete(post)

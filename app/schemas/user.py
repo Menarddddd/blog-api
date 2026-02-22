@@ -50,6 +50,10 @@ class TokenPublic(BaseModel):
     hashed_token: str
 
 
+class UserOnlyResponse(UserBase):
+    id: uuid.UUID
+
+
 class UserResponse(UserBase):
     id: uuid.UUID
     posts: List[PostPublic] = Field(default_factory=list)
@@ -75,3 +79,7 @@ class ChangePassword(BaseModel):
     current_password: str
     new_password: str = Field(min_length=5, max_length=200)
     confirm_password: str = Field(min_length=5, max_length=200)
+
+
+class PasswordRequired(BaseModel):
+    password: str

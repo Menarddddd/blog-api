@@ -1,5 +1,5 @@
 from uuid import UUID
-from fastapi import HTTPException, status, Depends
+from fastapi import HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -78,6 +78,12 @@ async def change_password_service(
     if form_data.new_password != form_data.confirm_password:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="New password must match"
+        )
+
+    if form_data.current_password == form_data.new_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You cannot have the same current password and new password",
         )
 
     if not verify_password(form_data.current_password, current_user.password):

@@ -5,6 +5,7 @@ from sqlalchemy.orm import mapped_column, Mapped, relationship
 from enum import Enum
 
 from app.core.database import Base
+from app.models.notification import Notification
 
 if TYPE_CHECKING:
     from app.models.post import Post
@@ -28,6 +29,9 @@ class User(Base):
     password: Mapped[str] = mapped_column(String(200), nullable=False)
     role: Mapped[Role] = mapped_column(SQLEnum(Role), default=Role.USER)
 
+    notifications: Mapped[List["Notification"]] = relationship(
+        "Notification", back_populates="user", cascade="all, delete-orphan"
+    )
     posts: Mapped[List["Post"]] = relationship(
         "Post", back_populates="author", cascade="all, delete-orphan"
     )

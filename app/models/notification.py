@@ -1,33 +1,34 @@
 import uuid
 from typing import TYPE_CHECKING
-from sqlalchemy import ForeignKey, UUID, DateTime, Text
+from sqlalchemy import String, ForeignKey, UUID, DateTime
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 from datetime import datetime, timezone
 
 from app.core.database import Base
-from app.models.notification import Notification
+
 
 if TYPE_CHECKING:
     from app.models.user import User
     from app.models.post import Post
+    from app.models.comment import Comment
 
 
-class Comment(Base):
-    __tablename__ = "comments"
+class Notification(Base):
+    __tablename__ = "notifications"
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
-
-    message: Mapped[str] = mapped_column(Text, nullable=False)
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
     post_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("posts.id"), nullable=False)
-    date_created: Mapped[datetime] = mapped_column(
+    comment_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("comments.id"), nullable=False
+    )
+    message: Mapped[str] = mapped_column(String(100), nullable=False)
+    notification_date: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
 
-    author: Mapped["User"] = relationship("User", back_populates="comments")
-    post: Mapped["Post"] = relationship("Post", back_populates="comments")
-    notifications: Mapped["Notification"] = relationship(
-        "Notification", back_populates="comment", cascade="all, delete-orphan"
-    )
+    user: Mapped["User"] = relationship("User", back_populates="notifications")
+    post: Mapped["Post"] = relationship("Post", back_populates="notifications")
+    comment: Mapped["Comment"] = relationship("Comment", back_populates="notifications")

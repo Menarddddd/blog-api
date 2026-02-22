@@ -50,6 +50,7 @@ async def get_current_user(
             selectinload(User.posts).options(
                 selectinload(Post.comments).options(selectinload(Comment.author))
             ),
+            selectinload(User.comments),
         )
         .where(User.id == user_id)
     )
